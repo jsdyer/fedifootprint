@@ -1,74 +1,57 @@
-"""Exercise the built starter at a project subpath in Chromium."""
+"""Exercise the production output at its project subpath on a phone and without JavaScript."""
 from functools import partial
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from http.server import SimpleHTTPRequestHandler,ThreadingHTTPServer
+import os
 from pathlib import Path
 import shutil
-import tempfile
-import sys
+from tempfile import TemporaryDirectory
 import threading
 from playwright.sync_api import sync_playwright
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts"))
-from build import build
-
-
-class QuietHandler(SimpleHTTPRequestHandler):
-    def log_message(self, *args):
+ROOT=Path(__file__).resolve().parents[1]
+class Quiet(SimpleHTTPRequestHandler):
+    def log_message(self,*args):
         pass
 
-
 def main():
-    screenshots = ROOT / "browser-checks"
-    screenshots.mkdir(exist_ok=True)
-    with tempfile.TemporaryDirectory() as temporary:
-        shutil.copytree(ROOT / "dist", Path(temporary) / "example-tool")
-        example = Path(temporary) / "preset-fixture"
-        example.mkdir()
-        shutil.copytree(ROOT / "web", example / "web")
-        shutil.copytree(ROOT / "examples/common-pages", example / "common-pages")
-        for name in ("tool.json", "README.md"):
-            shutil.copyfile(ROOT / name, example / name)
-        build(example)
-        server = ThreadingHTTPServer(("127.0.0.1", 0), partial(QuietHandler, directory=temporary))
-        threading.Thread(target=server.serve_forever, daemon=True).start()
+    with TemporaryDirectory() as t:
+        shutil.copytree(ROOT/"dist",Path(t)/"fedifootprint")
+        server=ThreadingHTTPServer(("127.0.0.1",0),partial(Quiet,directory=t))
+        threading.Thread(target=server.serve_forever,daemon=True).start()
         try:
             with sync_playwright() as p:
-                browser = p.chromium.launch()
-                page = browser.new_page(viewport={"width": 1280, "height": 1000})
-                errors = []
-                page.on("pageerror", lambda error: errors.append(str(error)))
-                page.goto(f"http://127.0.0.1:{server.server_port}/example-tool/")
-                assert page.locator("#input").input_value() == "Halifax\nLangley\nHalifax\nVancouver"
-                assert page.locator("#output").input_value() == "Halifax\nLangley\nVancouver"
-                assert "1 duplicate removed" in page.locator("#status").inner_text()
-                page.locator("#input").fill('<img src=x onerror="alert(1)">\n<img src=x onerror="alert(1)">')
-                assert page.locator("#output").input_value() == '<img src=x onerror="alert(1)">'
-                assert page.locator("img").count() == 0
-                page.locator("#clear").click()
-                assert page.locator("#output").input_value() == ""
-                assert "Paste one item per line" in page.locator("#status").inner_text()
-                page.locator("#sample").click()
-                assert page.locator("#output").input_value() == "Halifax\nLangley\nVancouver"
-                page.screenshot(path=str(screenshots / "desktop.png"), full_page=True)
-                page.set_viewport_size({"width": 390, "height": 844})
-                page.goto(f"http://127.0.0.1:{server.server_port}/example-tool/")
-                assert page.locator("#input").bounding_box()["y"] < 844
-                assert page.locator("#output").input_value() == "Halifax\nLangley\nVancouver"
-                assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
-                page.screenshot(path=str(screenshots / "mobile.png"), full_page=True)
-                page.goto(f"http://127.0.0.1:{server.server_port}/preset-fixture/dist/remove-duplicate-cities/")
-                assert page.locator("#output").input_value() == "Vancouver\nHalifax\nCharlottetown"
-                page.locator("#input").fill("Surrey\nSurrey\nOttawa")
-                assert page.locator("#output").input_value() == "Surrey\nOttawa"
-                page.get_by_role("button", name="Restore example").click()
-                assert page.locator("#output").input_value() == "Vancouver\nHalifax\nCharlottetown"
-                assert not errors, errors
+                browser=p.chromium.launch(executable_path=os.environ.get("CHROMIUM_BIN"))
+                base=f"http://127.0.0.1:{server.server_port}/fedifootprint/"
+                phone=browser.new_page(viewport={"width":390,"height":844})
+                errors=[];phone.on("pageerror",lambda e:errors.append(str(e)))
+                phone.goto(base);phone.locator(".bar").first.wait_for()
+                assert phone.locator("#country").input_value()=="Canada"
+                assert phone.locator("#country").bounding_box()["y"]<844
+                assert phone.locator(".card").count()==2
+                assert phone.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+                screenshots=ROOT/"browser-checks";screenshots.mkdir(exist_ok=True)
+                phone.screenshot(path=str(screenshots/"mobile.png"))
+                phone.select_option("#other","Canada")
+                assert phone.locator(".card").count()==1
+                phone.select_option("#country","France")
+                assert "country=France" in phone.url
+                phone.reload();phone.locator(".bar").first.wait_for()
+                assert phone.locator("#country").input_value()=="France"
+                phone.select_option("#week",index=1)
+                phone.locator("#result a",has_text="See this weekly export").click()
+                assert "Fediverse hosting on" in phone.locator("h1").inner_text()
+                assert "separate exports" in phone.locator("body").inner_text()
+                phone.get_by_role("link",name="All records").click()
+                phone.get_by_role("link",name="Mastodon",exact=True).last.click()
+                assert "Mastodon" in phone.locator("h1").inner_text()
+                plain=browser.new_page(java_script_enabled=False)
+                plain.goto(base)
+                plain.get_by_role("link",name="Read the country record").first.click()
+                assert "Canada" in plain.locator("h1").inner_text()
+                assert "Largest reporting domains" in plain.locator("body").inner_text()
+                assert not errors,errors
                 browser.close()
-            print("Browser checks passed: project subpath, sample, clear, safe text and mobile layout")
         finally:
             server.shutdown()
-
-
-if __name__ == "__main__":
-    main()
+    print("Browser checks passed")
+if __name__=="__main__":main()

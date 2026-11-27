@@ -1,16 +1,6 @@
 {
-  "id": "coolcode-tool-template",
-  "title": "CoolCode Tool Starter",
-  "description": "A browser-only example that trims lines and removes exact duplicates.",
-  "category": "security",
-  "tags": ["text", "lines", "duplicates"],
-  "icon": "scan-search",
-  "url": "/coolcode-tool-template/",
-  "source": "https://github.com/jsdyer/coolcode-tool-template",
-  "hosting": "project",
-  "access": "browser",
-  "data_info": {
-    "mode": "local",
-    "detail": "The browser reads the text you paste and compares its lines."
-  }
+  "id":"fedifootprint","title":"FediFootprint","description":"Compare where fediverse servers are hosted, which software runs there, and how monthly active account shares change between weekly FediDB exports.",
+  "category":"liminal-tools","tags":["fediverse","hosting","Mastodon","FediDB","open data"],"icon":"network","url":"/fedifootprint/","source":"https://github.com/jsdyer/fedifootprint","hosting":"project","access":"browser",
+  "data_info":{"mode":"snapshot","detail":"FediDB publishes weekly counts by hosting country and software, plus a separate directory export with reported server activity.","cadence":"Weekly","probes":[{"label":"Source check","url":"https://coolcode.ca/fedifootprint/data/status.json","path":["checked_at"],"count_at":{"path":["country_software_rows"],"unit":"country and software rows"}},{"label":"Latest FediDB export","url":"https://coolcode.ca/fedifootprint/data/status.json","path":["latest"]}]},
+  "result_directory":{"path":"records/","title":"Fediverse hosting by country, software and week"}
 }

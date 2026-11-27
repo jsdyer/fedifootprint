@@ -1,39 +1,20 @@
 <!doctype html>
 <html lang="en-CA">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Fediverse hosting by country and software · FediFootprint</title>
   <meta name="description" content="{{DESCRIPTION}}">
-  <title>{{TITLE}} · CoolCode</title>
-  <link rel="stylesheet" href="./style.css">
-  <script type="module" src="./app.mjs"></script>
+  <link rel="stylesheet" href="./style.css"><script type="module" src="./app.mjs"></script>
   {{VISIT_COUNTER}}
 </head>
 <body data-tool-id="{{TOOL_ID}}">
-  <a class="skip" href="#main">Skip to content</a>
-  <header><a href="https://coolcode.ca/">← CoolCode.ca</a><a href="{{SOURCE_URL}}">Source &amp; instructions ↗</a></header>
-  <main id="main">
-    <h1>{{TITLE}}</h1>
-    <p class="intro">{{DESCRIPTION}}</p>
-    <section aria-labelledby="example-title">
-      <h2 id="example-title">Remove duplicate lines</h2>
-      <p>Edit the city names or paste your own list, one item per line. The first copy of each line keeps its place.</p>
-      <p id="status" role="status" aria-live="polite">3 unique lines. 1 duplicate removed.</p>
-      <div class="panels">
-        <div><label for="input">Original lines</label><textarea id="input" rows="5" maxlength="100000" spellcheck="false" placeholder="Paste one item per line">Halifax
-Langley
-Halifax
-Vancouver</textarea></div>
-        <div><label for="output">Cleaned lines</label><textarea id="output" rows="5" readonly spellcheck="false">Halifax
-Langley
-Vancouver</textarea></div>
-      </div>
-      <div class="actions"><button id="sample" type="button">Restore example</button><button id="clear" type="button">Clear</button><button id="copy" type="button" hidden>Copy result</button></div>
-      <noscript><p>This tool needs JavaScript to process your text. The source is available above.</p></noscript>
-    </section>
-    <!-- common-use-links -->
-    <aside aria-label="Privacy"><strong>Stays on your device.</strong> The browser processes your text in this tab. Reloading clears it.</aside>
-  </main>
-  <footer>Part of <a href="https://coolcode.ca/">the CoolCode collection</a>. {{ISSUE_LINK}}</footer>
-</body>
-</html>
+<header><nav><a href="https://coolcode.ca/">CoolCode</a><span>Networks &amp; routing</span><a href="./records/">Browse records ↗</a></nav></header>
+<main><h1>{{TITLE}}</h1>
+<p class="lead">Where do fediverse servers run? Choose a platform and compare its share of servers and monthly active accounts in two hosting countries.</p>
+<section aria-labelledby="explorer"><h2 id="explorer">Compare hosting shares</h2>
+<form id="filters"><label>Software<select id="software"><!--software--></select></label><label>Hosting country<select id="country"><!--country--></select></label><label>Compare with<select id="other"><!--other--></select></label><label>Weekly export<select id="week"><!--week--></select></label></form>
+<p id="notice" role="status"></p><div id="result"><!--example--></div></section>
+<section class="reading"><h2>Read the underlying records</h2><p><a href="./records/">Browse countries, software and weekly exports</a>. Each record includes previous counts, the share of reported activity on the largest server domains, and the dated source files.</p></section>
+<noscript><p>The example and all <a href="./records/">published records</a> are available without JavaScript.</p><style>#filters{display:none}</style></noscript>
+<footer><p>Adapted from <a href="https://fedidb.com/datasets">FediDB</a> under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Counts describe accounts on hosted servers. One person can hold several accounts.</p><a href="{{SOURCE_URL}}#readme">Method and source code</a> · {{ISSUE_LINK}}</footer></main>
+</body></html>
